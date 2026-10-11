@@ -20,6 +20,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
         private bool _openingGame;
         private bool _soundEnabled = true;
+        private string _playerName = string.Empty;
 
         private WindowsMediaPlayer? _musicPlayer;
 
@@ -64,10 +65,14 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
             // btnGuide.Click da duoc noi trong Form1.Designer.cs.
 
-            // Chi mo cac chuc nang da san sang.
+            // Bat cac chuc nang da duoc tich hop.
             btnGuide.Enabled = true;
-            btnAchievement.Enabled = false;
+            btnAchievement.Enabled = true;
             btnSound.Enabled = true;
+
+            // Designer chua noi Click cho nut Thanh tich.
+            btnAchievement.Click -= btnAchievement_Click;
+            btnAchievement.Click += btnAchievement_Click;
 
             // Luu vi tri ban dau.
             startPos = btnStart.Location;
@@ -358,7 +363,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
         private void btnStart_Click(object? sender, EventArgs e)
         {
-            // Khong mo hai cua so game cung luc.
+            // Chan nhan lien tiep de khong mo hai form cung luc.
             if (_openingGame)
                 return;
 
@@ -367,9 +372,21 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
             try
             {
+                // Nhap ten truoc khi bat dau de co the luu thanh tich.
+                using (var nameForm = new TenNguoiChoiForm(_playerName))
+                {
+                    if (nameForm.ShowDialog(this) != DialogResult.OK)
+                        return;
+
+                    _playerName = nameForm.PlayerName;
+                }
+
+                // Truyen ten nguoi choi sang GameForm.
                 using (var gameForm =
                     new AILATRIEUPHU.GameForm(_lastTopic, _gamesByTopic))
                 {
+                    gameForm.PlayerName = _playerName;
+
                     Hide();
                     gameForm.ShowDialog(this);
 
@@ -378,6 +395,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             }
             finally
             {
+                // Luon khoi phuc man hinh chinh sau khi dong hoac huy.
                 _openingGame = false;
 
                 if (!IsDisposed)
@@ -403,9 +421,12 @@ namespace AILATRIEUPHU__MINH_QUAN_
                 form.ShowDialog(this);
             }
         }
-        private void btnAchievement_Click(object sender, EventArgs e)
+        private void btnAchievement_Click(object? sender, EventArgs e)
         {
-            // Se bo sung chuc nang thanh tich sau.
+            using (var form = new ThanhTichForm())
+            {
+                form.ShowDialog(this);
+            }
         }
 
         private void btnExit_Click(object? sender, EventArgs e)
