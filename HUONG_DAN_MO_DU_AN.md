@@ -1,59 +1,59 @@
-# Bản ghép màn hình chính và màn hình chơi
+# Dự án WinForms: Ai Là Triệu Phú
 
-## Việc Hào cần làm đầu tiên
+## Mở và chạy dự án
 
-1. Giải nén toàn bộ tệp ZIP vào một thư mục mới, không chép đè dự án cũ.
-2. Trong thư mục vừa giải nén, mở `AiLaTrieuPhu.BanGhep.slnx` bằng Visual Studio.
-3. Nhấn **Ctrl+Shift+B** để biên dịch: kiểm tra xem mã có tạo được chương trình không.
-4. Khi không có lỗi, nhấn **F5** để chạy.
-5. Bấm **BẮT ĐẦU** trên màn hình chính. Màn hình chơi phải hiện câu 1/10 và tiền $0.
+1. Clone hoặc Pull repository `Cswinform` về máy.
+2. Mở `AiLaTrieuPhu.BanGhep.slnx` bằng Visual Studio.
+3. Chọn **Build → Rebuild Solution**.
+4. Nếu build thành công, nhấn **F5** để chạy.
+5. Kiểm tra lần lượt nút Hướng dẫn, nút âm thanh, Bắt đầu, Thành tích và các hành động trong màn hình chơi.
 
-Nếu Visual Studio báo lỗi, mở **View → Error List** (danh sách lỗi), chụp các dòng lỗi gửi lại. Không chọn chạy bản cũ nếu Visual Studio đề nghị sau khi biên dịch thất bại.
+Nếu Visual Studio báo lỗi, mở **View → Error List** và xử lý lỗi trước khi chạy; không chạy bản build cũ sau khi build thất bại.
 
-## Những gì đã ghép
+## Chức năng hiện có
 
-- Giữ hình nền, tiêu đề và bố cục màn hình chính của Quân.
-- Nút Bắt đầu mở màn hình chơi và tạm ẩn màn hình chính.
-- Đóng màn hình chơi bằng dấu X hoặc Alt+F4 sẽ trở lại màn hình chính.
-- Nút Thoát trên màn hình chính đóng ứng dụng.
-- Màn hình chơi có bốn chủ đề công nghệ thông tin. Bấm ô Chủ đề trước khi trả lời hoặc dùng trợ giúp ở câu đầu để đổi chủ đề.
-- Mỗi ván có 10 câu, tiền USD và mốc an toàn theo thỏa thuận của nhóm.
-- Bấm Chơi lại sau khi kết thúc sẽ tạo ván mới và đặt lại quyền trợ giúp.
-- Khi trở lại màn hình chính rồi bấm Bắt đầu, ứng dụng tạo ván mới trong chủ đề vừa chơi.
-- Bộ luật của mỗi chủ đề được giữ trong lần mở ứng dụng, giúp ván sau tránh các câu của ván liền trước trong cùng chủ đề. Đóng hẳn ứng dụng sẽ xóa lịch sử tạm này. Ngân hàng hữu hạn không thể đảm bảo không lặp mãi mãi.
+- Màn hình chính giữ hình nền, tiêu đề và bố cục đã thiết kế bằng WinForms Designer.
+- Nút **HƯỚNG DẪN** mở `HuongDanForm`; nút **QUAY LẠI** đóng form hướng dẫn để trở lại màn hình chính.
+- Nhạc nền đọc từ `Assets/Backgroundmusic.mp3`, phát lặp; nút loa bật/tắt tiếng nhạc.
+- Nút **BẮT ĐẦU** yêu cầu nhập tên người chơi trước khi mở màn hình game.
+- Màn hình chơi có bốn chủ đề CNTT, mỗi ván 10 câu và các quyền trợ giúp 50:50, hỏi khán giả, gọi điện thoại.
+- Kết thúc ván bằng thắng, thua hoặc dừng sẽ ghi thành tích gồm tên người chơi, chủ đề, số câu đúng, tiền thực nhận, kết quả và thời gian.
+- Nút **THÀNH TÍCH** mở bảng xếp hạng, có thể tải lại danh sách.
+- Dữ liệu thành tích mặc định lưu tại thư mục dữ liệu cục bộ của người dùng Windows: `%LOCALAPPDATA%/AiLaTrieuPhu/scores.json`. Thành tích không đồng bộ tự động giữa các máy tính.
+- Khi đóng cửa sổ chơi trong lúc ván còn đang diễn ra, chương trình hỏi xác nhận; để ghi nhận tiền đã đạt được, hãy chọn Không rồi dùng nút Dừng cuộc chơi.
 
-## Phần còn chờ thành viên khác
-
-- Ba nút Hướng dẫn, Âm thanh và Thành tích trên màn hình chính đang tạm khóa vì chưa có mã của Khang và Hoàng để nối vào.
-- Các trợ giúp 50:50, khán giả và gọi điện trong màn hình chơi được giữ từ bản Hào đã làm cùng trợ lý. Đây là phần có thể bàn giao cho Khang rà soát và tích hợp với phần của bạn ấy.
-- Bản ghép chưa thêm âm thanh, hướng dẫn chơi hoặc lưu thành tích. Không coi đây là bản hoàn thành toàn bộ đồ án.
-
-## Tìm tệp theo trách nhiệm
+## Các tệp chính
 
 | Tệp | Vai trò |
 |---|---|
-| `Program.cs` | Mở màn hình chính khi chạy ứng dụng |
-| `Form1.cs`, `Form1.Designer.cs`, `Form1.resx` | Bộ ba tệp màn hình chính của Quân; lớp bên trong tên `frmMain` |
-| `GameForm.cs`, `GameForm.Designer.cs`, `GameForm.resx` | Bộ ba tệp màn hình chơi đã ghép; đổi tên từ Form1 của Hào để tránh chép đè |
-| `Question.cs` | Mô tả một câu hỏi |
-| `QuestionBank.cs` | Ngân hàng câu hỏi theo bốn chủ đề và trộn câu, đáp án |
+| `Program.cs` | Khởi chạy màn hình chính |
+| `Form1.cs` | Logic màn hình chính, nhạc nền, điều hướng và nhập tên |
+| `Form1.Designer.cs`, `Form1.resx` | Giao diện và tài nguyên màn hình chính |
+| `HuongDanForm.cs` | Xử lý nút Quay lại của trang hướng dẫn |
+| `HuongDanForm.Designer.cs`, `HuongDanForm.resx` | Giao diện trang hướng dẫn |
+| `GameForm.cs` | Tương tác màn hình chơi, xử lý trợ giúp, kết quả và lưu thành tích |
+| `GameForm.Designer.cs`, `GameForm.resx` | Giao diện và tài nguyên màn hình chơi |
+| `Score.cs` | Mô hình điểm và đọc/ghi dữ liệu thành tích |
+| `ThanhTichForm.cs` | Form nhập tên và form bảng thành tích |
 | `GameRules.cs` | Trạng thái ván, chấm đáp án, chuyển câu và tính tiền |
-| `TestRunner.cs` | Bảy kịch bản kiểm tra luật chơi, không phụ thuộc giao diện |
+| `Question.cs` | Mô hình câu hỏi |
+| `QuestionBank.cs` | Ngân hàng câu hỏi, chủ đề và trộn câu/đáp án |
+| `TestRunner.cs` | Kịch bản kiểm tra logic luật chơi |
+| `Assets/Backgroundmusic.mp3` | Nhạc nền được sao chép sang thư mục đầu ra khi build |
 
-Bốn tệp xử lý được giữ nguyên nội dung từ các tệp Hào đã cung cấp. `Question .cs` được đặt tên gọn thành `Question.cs`; `QuestionBank1.cs` được đặt thành `QuestionBank.cs`. Không thêm lại bản tên cũ vào cùng dự án vì sẽ bị khai báo lớp trùng.
-
-## Các thao tác kiểm tra tiếp theo
-
-Bản ghép đã biên dịch thành công bằng bộ công cụ Visual Studio đang có trên máy: **0 lỗi, 11 cảnh báo**. Có 9 cảnh báo về dữ liệu có thể thiếu giá trị trong các tệp xử lý cũ và 2 cảnh báo từ thư viện Windows Media Player vốn có trong dự án của Quân. Hai tệp màn hình đã ghép không phát sinh cảnh báo biên dịch. Tài nguyên hình ảnh của cả hai cửa sổ đã được đóng kèm đúng tên.
+## Checklist kiểm thử sau khi Pull
 
 | Thao tác | Kết quả cần thấy |
 |---|---|
-| Bắt đầu từ màn hình chính | Vào câu 1/10, tiền $0 |
-| Mở danh sách chủ đề | Có bốn chủ đề; chọn một chủ đề thì câu hỏi thuộc chủ đề đó |
-| Bấm Dừng ngay ở câu 1 rồi xác nhận | Kết thúc với $0 và có nút Chơi lại |
-| Bấm Chơi lại | Về câu 1/10, tiền $0, trợ giúp được khôi phục |
-| Đóng cửa sổ chơi | Màn hình chính hiện lại |
-| Bấm Bắt đầu lần nữa | Ván mới, không mở chồng nhiều cửa sổ chơi |
-| Bấm Thoát trên màn hình chính | Ứng dụng đóng |
+| Mở ứng dụng | Màn hình chính xuất hiện và nhạc nền bắt đầu phát |
+| Nhấn nút loa | Nhạc tắt tiếng/bật tiếng và biểu tượng đổi tương ứng |
+| Nhấn Hướng dẫn | Trang hướng dẫn mở; nhấn Quay lại thì trở về màn hình chính |
+| Nhấn Bắt đầu, nhập tên | Màn hình game mở và nhận tên vừa nhập |
+| Nhấn Hủy ở hộp nhập tên | Không mở màn hình game |
+| Hoàn thành một ván bằng thắng/thua/dừng | Thành tích được lưu một lần |
+| Mở Thành tích | Bảng hiển thị các lượt chơi đã lưu |
+| Đóng/mở lại ứng dụng | Thành tích trước đó còn trong thư mục LocalAppData của cùng người dùng Windows |
+| Đóng game khi đang chơi | Có hộp thoại xác nhận thoát |
+| Chơi lại hoặc quay về màn hình chính | Trạng thái game được làm mới đúng và không mở chồng form |
 
-Biên dịch thành công không thay cho kiểm tra thao tác trực tiếp. Lần trước Windows đã chặn chương trình kiểm tra tự động bằng chính sách kiểm soát ứng dụng, nên chưa xác nhận các thao tác giao diện tự động trong bản ghép này. Hào thực hiện phép thử đầu tiên ở trên trong Visual Studio rồi báo kết quả.
+**Ghi chú kiểm thử:** Mã nguồn đã được rà soát tĩnh sau khi tích hợp, nhưng build và thao tác UI thực tế vẫn cần được xác nhận trong Visual Studio trên máy Windows. Báo cáo lỗi trong Error List nếu Rebuild Solution chưa thành công.
