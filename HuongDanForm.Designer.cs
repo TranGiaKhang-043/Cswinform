@@ -1,4 +1,4 @@
-﻿namespace AILATRIEUPHU__MINH_QUAN_
+namespace AILATRIEUPHU__MINH_QUAN_
 {
     partial class HuongDanForm
     {
@@ -28,8 +28,6 @@
         /// </summary>
         private void InitializeComponent()
         {
-            btnSound = new Button();
-            lblTitle = new Label();
             lblHeading = new Label();
             pnlHowToPlay = new Panel();
             lblHowToPlayTitle = new Label();
@@ -45,31 +43,6 @@
             panel1.SuspendLayout();
             panel2.SuspendLayout();
             SuspendLayout();
-            // 
-            // btnSound
-            // 
-            btnSound.BackColor = SystemColors.Highlight;
-            btnSound.Font = new Font("Arial", 15F, FontStyle.Bold, GraphicsUnit.Point, 163);
-            btnSound.ForeColor = Color.Yellow;
-            btnSound.Location = new Point(-109, 282);
-            btnSound.Margin = new Padding(2);
-            btnSound.Name = "btnSound";
-            btnSound.Size = new Size(44, 34);
-            btnSound.TabIndex = 11;
-            btnSound.Text = "🔊";
-            btnSound.UseVisualStyleBackColor = false;
-            // 
-            // lblTitle
-            // 
-            lblTitle.AutoSize = true;
-            lblTitle.BackColor = Color.Transparent;
-            lblTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
-            lblTitle.Location = new Point(8, -46);
-            lblTitle.Margin = new Padding(2, 0, 2, 0);
-            lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(591, 37);
-            lblTitle.TabIndex = 7;
-            lblTitle.Text = "💰 BẠN CÓ MUỐN GIÀU SAU MỘT ĐÊM ? 💰";
             // 
             // lblHeading
             // 
@@ -213,9 +186,7 @@
             Controls.Add(panel1);
             Controls.Add(pnlHowToPlay);
             Controls.Add(lblHeading);
-            Controls.Add(btnSound);
-            Controls.Add(lblTitle);
-            Cursor = Cursors.No;
+            Cursor = Cursors.Default;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Margin = new Padding(2);
             MinimumSize = new Size(900, 600);
@@ -230,8 +201,6 @@
         }
 
         #endregion
-        private Button btnSound;
-        private Label lblTitle;
         private Label lblHeading;
         private Panel pnlHowToPlay;
         private Label lblHowToPlayTitle;
