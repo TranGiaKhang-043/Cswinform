@@ -16,6 +16,11 @@ namespace AILATRIEUPHU
         // Form chỉ quản lý hiển thị và lượt trợ giúp.
         // Chấm đáp án, tiến độ, tiền thưởng vẫn do GameRules quyết định.
         private GameRules _game;
+        [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+        public string PlayerName { get; set; } = "Người chơi";
+        private readonly ScoreStorage _scoreStorage = new ScoreStorage();
+        private Score? _pendingScore;
+        private bool _scoreSaved;
         private QuestionTopic _selectedTopic;
         // Màn hình chính giữ bộ luật của từng chủ đề suốt lần mở ứng dụng.
         // Nhờ vậy, đóng cửa sổ chơi rồi mở lại vẫn nhớ câu của ván trước.
@@ -219,6 +224,8 @@ namespace AILATRIEUPHU
         {
             // Dùng lại GameRules để giữ danh sách mã của ván trước.
             _game.StartNewGame();
+            _pendingScore = null;
+            _scoreSaved = false;
             HideResultPopup();
             ResetLifelines();
             LoadQuestionToUI();
@@ -541,6 +548,7 @@ namespace AILATRIEUPHU
         private void ShowResultPopup(string title, string message, Color accentColor,
             string actionText, ResultPopupAction action)
         {
+            if (action == ResultPopupAction.Replay) SaveCompletedGame();
             _resultAccentColor = accentColor;
             _resultPopupAction = action;
             _isResultPopupVisible = true;
@@ -557,6 +565,55 @@ namespace AILATRIEUPHU
             pnlResult.Invalidate();
             pnlResultAction.Invalidate();
             RefreshGameControls();
+        }
+
+        // Chỉ lấy FinalMoney của Hào khi ván đã kết thúc.
+        private bool SaveCompletedGame()
+        {
+            if (_scoreSaved) return true;
+            if (_game.State == GameState.Playing || !_game.FinalMoney.HasValue) return true;
+            if (_pendingScore == null)
+            {
+                _pendingScore = new Score
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    PlayerName = PlayerName.Trim(),
+                    Topic = QuestionBank.GetTopicName(_selectedTopic),
+                    CorrectCount = _game.CorrectCount,
+                    Money = _game.FinalMoney.Value,
+                    Result = _game.State == GameState.Won ? "Thắng" :
+                        (_game.State == GameState.Lost ? "Thua" : "Dừng"),
+                    PlayedAt = DateTime.Now
+                };
+            }
+            while (!_scoreStorage.TrySave(_pendingScore, out string error))
+            {
+                if (MessageBox.Show(this, error + "\n\nBấm Retry để thử lưu lại; Cancel để quay về kết quả.",
+                    "Chưa lưu thành tích", MessageBoxButtons.RetryCancel,
+                    MessageBoxIcon.Warning) != DialogResult.Retry) return false;
+            }
+            _scoreSaved = true;
+            return true;
+        }
+
+        private bool CanLeaveResult()
+        {
+            if (SaveCompletedGame()) return true;
+            return MessageBox.Show(this, "Thành tích chưa được lưu. Bạn vẫn muốn bỏ kết quả này?",
+                "Xác nhận", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes;
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            if (_game.State == GameState.Playing)
+            {
+                if (MessageBox.Show(this, "Ván chưa kết thúc. Thoát sẽ không lưu thành tích.\n" +
+                    "Muốn nhận tiền và lưu kết quả, chọn Không rồi dùng nút Dừng cuộc chơi.\n\nThoát ván này?",
+                    "Về màn hình chính", MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question) != DialogResult.Yes) e.Cancel = true;
+            }
+            else if (!CanLeaveResult()) e.Cancel = true;
+            base.OnFormClosing(e);
         }
 
         private void HideResultPopup()
@@ -586,7 +643,7 @@ namespace AILATRIEUPHU
                 }
                 else
                 {
-                    StartNewGameFromUI();
+                    if (CanLeaveResult()) StartNewGameFromUI();
                 }
             }
             finally
