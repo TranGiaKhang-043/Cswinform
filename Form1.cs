@@ -61,7 +61,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             btnExit.Click += btnExit_Click;
 
             // Chi mo cac chuc nang da san sang.
-            btnGuide.Enabled = false;
+            btnGuide.Enabled = true;
             btnAchievement.Enabled = false;
             btnSound.Enabled = true;
 
@@ -391,9 +391,11 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
         private void btnGuide_Click(object sender, EventArgs e)
         {
-            // Se bo sung chuc nang huong dan sau.
+            using (HuongDanForm form = new HuongDanForm())
+            {
+                form.ShowDialog(this);
+            }
         }
-
         private void btnAchievement_Click(object sender, EventArgs e)
         {
             // Se bo sung chuc nang thanh tich sau.

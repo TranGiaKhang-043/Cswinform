@@ -8,6 +8,10 @@ using System.Windows.Forms;
 
 namespace AILATRIEUPHU__MINH_QUAN_
 {
+    private void btnBack_Click(object sender, EventArgs e)
+    {
+        this.Close();
+    }
     public partial class HuongDanForm : Form
     {
         public HuongDanForm()
