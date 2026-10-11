@@ -1,39 +1,39 @@
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
+using WMPLib;
 using AiLaTrieuPhu;
 
 namespace AILATRIEUPHU__MINH_QUAN_
 {
     public partial class frmMain : Form
     {
-        // Mỗi chủ đề giữ một bộ luật để tránh lặp câu khi quay về rồi chơi tiếp.
+        #region Bien va trang thai
+
         private readonly Dictionary<QuestionTopic, GameRules> _gamesByTopic =
             new Dictionary<QuestionTopic, GameRules>();
+
         private QuestionTopic _lastTopic = QuestionTopic.Programming;
+
         private bool _openingGame;
+        private bool _soundEnabled = true;
 
-        // =========================================
-        // VỊ TRÍ BAN ĐẦU
-        // =========================================
+        private WindowsMediaPlayer? _musicPlayer;
 
+        // Vi tri ban dau cua cac nut.
         private Point startPos;
         private Point guidePos;
         private Point soundPos;
         private Point achievementPos;
         private Point exitPos;
 
-        // =========================================
-        // VỊ TRÍ TIÊU ĐỀ
-        // =========================================
-
+        // Vi tri ban dau cua tieu de.
         private Point titleOriginalPos;
 
-        // =========================================
-        // MÀU GỐC CỦA BUTTON
-        // =========================================
-
+        // Mau ban dau cua cac nut.
         private Color startBackColor;
         private Color startForeColor;
 
@@ -49,44 +49,32 @@ namespace AILATRIEUPHU__MINH_QUAN_
         private Color exitBackColor;
         private Color exitForeColor;
 
+        #endregion
 
-        // =========================================
-        // CONSTRUCTOR
-        // =========================================
+        #region Khoi tao form
 
         public frmMain()
         {
             InitializeComponent();
 
-            // Nối nút thoát còn thiếu trong bản màn hình chính.
+            // Nut thoat chua duoc noi Click trong Designer.
             btnExit.Click += btnExit_Click;
 
-            // Ba chức năng này chờ phần của Khang và Hoàng để ghép tiếp.
-            // Tạm khóa để người chơi không bấm vào nút chưa có xử lý.
+            // Chi mo cac chuc nang da san sang.
             btnGuide.Enabled = false;
-            btnSound.Enabled = false;
             btnAchievement.Enabled = false;
+            btnSound.Enabled = true;
 
-            // =====================================
-            // LƯU VỊ TRÍ BAN ĐẦU
-            // =====================================
-
+            // Luu vi tri ban dau.
             startPos = btnStart.Location;
             guidePos = btnGuide.Location;
             soundPos = btnSound.Location;
             achievementPos = btnAchievement.Location;
             exitPos = btnExit.Location;
 
-            // =====================================
-            // LƯU VỊ TRÍ TIÊU ĐỀ
-            // =====================================
-
             titleOriginalPos = lblTitle.Location;
 
-            // =====================================
-            // LƯU MÀU GỐC
-            // =====================================
-
+            // Luu mau ban dau.
             startBackColor = btnStart.BackColor;
             startForeColor = btnStart.ForeColor;
 
@@ -102,28 +90,141 @@ namespace AILATRIEUPHU__MINH_QUAN_
             exitBackColor = btnExit.BackColor;
             exitForeColor = btnExit.ForeColor;
 
-            // =====================================
-            // THÊM HIỆU ỨNG CHO BUTTON
-            // =====================================
-
+            // Hieu ung cho cac nut.
             AddButtonEffect(btnStart);
             AddButtonEffect(btnGuide);
             AddButtonEffect(btnSound);
             AddButtonEffect(btnAchievement);
             AddButtonEffect(btnExit);
 
-            // =====================================
-            // HIỆU ỨNG TIÊU ĐỀ
-            // =====================================
-
+            // Hieu ung tieu de.
             lblTitle.MouseEnter += lblTitle_MouseEnter;
             lblTitle.MouseLeave += lblTitle_MouseLeave;
+
+            // Giai phong trinh phat khi dong form.
+            FormClosed += frmMain_FormClosed;
         }
 
+        #endregion
 
-        // =========================================
-        // CÀI HIỆU ỨNG BUTTON
-        // =========================================
+        #region Nhac nen
+
+        private void InitializeBackgroundMusic()
+        {
+            string musicPath = Path.Combine(
+                Application.StartupPath,
+                "Assets",
+                "Backgroundmusic.mp3"
+            );
+
+            if (!File.Exists(musicPath))
+            {
+                MessageBox.Show(
+                    "Khong tim thay file nhac nen:\n" + musicPath +
+                    "\n\nHay kiem tra thu muc Assets va Copy to Output Directory.",
+                    "Loi nhac nen",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+
+                return;
+            }
+
+            try
+            {
+                // Tranh khoi tao nhieu trinh phat.
+                if (_musicPlayer != null)
+                    return;
+
+                _musicPlayer = new WindowsMediaPlayer();
+
+                _musicPlayer.settings.volume = 30;
+                _musicPlayer.settings.setMode("loop", true);
+                _musicPlayer.settings.mute = !_soundEnabled;
+
+                _musicPlayer.URL = musicPath;
+                _musicPlayer.controls.play();
+            }
+            catch (Exception ex)
+            {
+                // Neu khoi tao that bai, giai phong doi tuong neu co.
+                try
+                {
+                    _musicPlayer?.close();
+                }
+                catch
+                {
+                    // Bo qua loi trong qua trinh don dep.
+                }
+
+                _musicPlayer = null;
+
+                MessageBox.Show(
+                    "Khong the phat nhac nen:\n" + ex.Message,
+                    "Loi am thanh",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+        private void btnSound_Click(object sender, EventArgs e)
+        {
+            // Dao trang thai am thanh.
+            _soundEnabled = !_soundEnabled;
+
+            // Cap nhat bieu tuong.
+            btnSound.Text = _soundEnabled ? "🔊" : "🔇";
+
+            btnSound.AccessibleDescription = _soundEnabled
+                ? "Am thanh dang bat"
+                : "Am thanh dang tat";
+
+            // Bat/tat tieng nhac nen thuc te.
+            if (_musicPlayer != null)
+            {
+                try
+                {
+                    _musicPlayer.settings.mute = !_soundEnabled;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        "Khong the thay doi trang thai am thanh:\n" +
+                        ex.Message,
+                        "Loi am thanh",
+                        MessageBoxButtons.OK,
+                        MessageBoxIcon.Warning
+                    );
+                }
+            }
+        }
+
+        private void frmMain_FormClosed(
+            object? sender,
+            FormClosedEventArgs e)
+        {
+            if (_musicPlayer != null)
+            {
+                try
+                {
+                    _musicPlayer.controls.stop();
+                    _musicPlayer.close();
+                }
+                catch
+                {
+                    // Bo qua loi neu trinh phat da dong.
+                }
+                finally
+                {
+                    _musicPlayer = null;
+                }
+            }
+        }
+
+        #endregion
+
+        #region Hieu ung nut
 
         private void AddButtonEffect(Button button)
         {
@@ -135,117 +236,66 @@ namespace AILATRIEUPHU__MINH_QUAN_
             button.MouseUp += Button_MouseUp;
         }
 
-
-        // =========================================
-        // RÊ CHUỘT VÀO BUTTON
-        // =========================================
-
         private void Button_MouseEnter(object? sender, EventArgs e)
         {
-            if (sender is not Button button) return;
+            if (sender is not Button button)
+                return;
 
-            // Luôn tính từ vị trí gốc để nút không bị lệch sau nhiều lượt rê chuột.
             ResetButtonPosition(button);
             button.Top -= 2;
-
-            // =====================================
-            // ĐỔI NỀN SANG MÀU TÍM
-            // =====================================
-
             button.BackColor = Color.MediumPurple;
-
-            // =====================================
-            // MÀU CHỮ GIỮ NGUYÊN
-            // =====================================
         }
-
-
-        // =========================================
-        // RỜI CHUỘT RA KHỎI BUTTON
-        // =========================================
 
         private void Button_MouseLeave(object? sender, EventArgs e)
         {
-            if (sender is not Button button) return;
+            if (sender is not Button button)
+                return;
 
-            // Trở về vị trí ban đầu
             ResetButtonPosition(button);
-
-            // Trở về màu ban đầu
             ResetButtonColor(button);
         }
-
-
-        // =========================================
-        // NHẤN CHUỘT
-        // =========================================
 
         private void Button_MouseDown(object? sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
                 return;
 
-            if (sender is not Button button) return;
+            if (sender is not Button button)
+                return;
 
-            // Khi nhấn, đưa nút về vị trí gốc tạo cảm giác lún xuống.
             ResetButtonPosition(button);
         }
-
-
-        // =========================================
-        // THẢ CHUỘT
-        // =========================================
 
         private void Button_MouseUp(object? sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Left)
                 return;
 
-            if (sender is not Button button) return;
+            if (sender is not Button button)
+                return;
+
             ResetButtonPosition(button);
 
-            // Nếu chuột vẫn nằm trên button
             if (button.ClientRectangle.Contains(
                 button.PointToClient(Cursor.Position)))
             {
-                // Trở lại vị trí hover
                 button.Top -= 2;
             }
         }
 
-
-        // =========================================
-        // RESET VỊ TRÍ BUTTON
-        // =========================================
-
         private void ResetButtonPosition(Button button)
         {
             if (button == btnStart)
-            {
                 button.Location = startPos;
-            }
             else if (button == btnGuide)
-            {
                 button.Location = guidePos;
-            }
             else if (button == btnSound)
-            {
                 button.Location = soundPos;
-            }
             else if (button == btnAchievement)
-            {
                 button.Location = achievementPos;
-            }
             else if (button == btnExit)
-            {
                 button.Location = exitPos;
-            }
         }
-
-
-        // =========================================
-        // RESET MÀU BUTTON
-        // =========================================
 
         private void ResetButtonColor(Button button)
         {
@@ -276,10 +326,9 @@ namespace AILATRIEUPHU__MINH_QUAN_
             }
         }
 
+        #endregion
 
-        // =========================================
-        // TIÊU ĐỀ - RÊ CHUỘT VÀO
-        // =========================================
+        #region Hieu ung tieu de
 
         private void lblTitle_MouseEnter(object? sender, EventArgs e)
         {
@@ -289,54 +338,52 @@ namespace AILATRIEUPHU__MINH_QUAN_
             );
         }
 
-
-        // =========================================
-        // TIÊU ĐỀ - RỜI CHUỘT
-        // =========================================
-
         private void lblTitle_MouseLeave(object? sender, EventArgs e)
         {
             lblTitle.Location = titleOriginalPos;
         }
 
-
-        // =========================================
-        // CÁC EVENT CÓ SẴN
-        // =========================================
-
         private void lblTitle_Click(object sender, EventArgs e)
         {
+            // Chua can xu ly.
         }
+
+        #endregion
+
+        #region Xu ly nut chinh
 
         private void btnStart_Click(object? sender, EventArgs e)
         {
-            // Chặn bấm liên tiếp để không mở hai cửa sổ chơi cùng lúc.
-            if (_openingGame) return;
+            // Khong mo hai cua so game cung luc.
+            if (_openingGame)
+                return;
 
             _openingGame = true;
             btnStart.Enabled = false;
 
             try
             {
-                // Tạo xong cửa sổ chơi mới ẩn màn hình chính.
-                // Dùng chung bộ luật giúp ván mới nhớ câu đã dùng ở ván trước.
-                using (var gameForm = new AILATRIEUPHU.GameForm(_lastTopic, _gamesByTopic))
+                using (var gameForm =
+                    new AILATRIEUPHU.GameForm(_lastTopic, _gamesByTopic))
                 {
                     Hide();
                     gameForm.ShowDialog(this);
+
                     _lastTopic = gameForm.SelectedTopic;
                 }
             }
             finally
             {
-                // Dù đóng bằng dấu X hay Alt+F4, màn hình chính đều hiện lại.
                 _openingGame = false;
+
                 if (!IsDisposed)
                 {
                     Show();
                     btnStart.Enabled = true;
+
                     ResetButtonPosition(btnStart);
                     ResetButtonColor(btnStart);
+
                     Activate();
                 }
             }
@@ -344,25 +391,24 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
         private void btnGuide_Click(object sender, EventArgs e)
         {
-        }
-
-        private void btnSound_Click(object sender, EventArgs e)
-        {
+            // Se bo sung chuc nang huong dan sau.
         }
 
         private void btnAchievement_Click(object sender, EventArgs e)
         {
+            // Se bo sung chuc nang thanh tich sau.
         }
 
         private void btnExit_Click(object? sender, EventArgs e)
         {
-            // Đây là cửa sổ chính nên đóng nó sẽ kết thúc ứng dụng.
             Close();
         }
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-
+            InitializeBackgroundMusic();
         }
+
+        #endregion
     }
 }
