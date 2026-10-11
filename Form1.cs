@@ -57,8 +57,13 @@ namespace AILATRIEUPHU__MINH_QUAN_
         {
             InitializeComponent();
 
-            // Nut thoat chua duoc noi Click trong Designer.
+            // Dam bao moi nut chi goi mot handler Click tuong ung.
+            // -= truoc khi += giup tranh mo hai cua so neu Designer da noi su kien.
+            btnExit.Click -= btnExit_Click;
             btnExit.Click += btnExit_Click;
+
+            btnGuide.Click -= btnGuide_Click;
+            btnGuide.Click += btnGuide_Click;
 
             // Chi mo cac chuc nang da san sang.
             btnGuide.Enabled = true;
@@ -391,8 +396,11 @@ namespace AILATRIEUPHU__MINH_QUAN_
 
         private void btnGuide_Click(object sender, EventArgs e)
         {
+            // Mo form huong dan nhu mot hop thoai.
+            // Khi HuongDanForm dong, nguoi choi tro lai frmMain hien tai.
             using (HuongDanForm form = new HuongDanForm())
             {
+                form.StartPosition = FormStartPosition.CenterParent;
                 form.ShowDialog(this);
             }
         }
