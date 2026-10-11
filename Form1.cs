@@ -62,8 +62,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             btnExit.Click -= btnExit_Click;
             btnExit.Click += btnExit_Click;
 
-            btnGuide.Click -= btnGuide_Click;
-            btnGuide.Click += btnGuide_Click;
+            // btnGuide.Click da duoc noi trong Form1.Designer.cs.
 
             // Chi mo cac chuc nang da san sang.
             btnGuide.Enabled = true;
@@ -394,7 +393,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             }
         }
 
-        private void btnGuide_Click(object sender, EventArgs e)
+        private void btnGuide_Click(object? sender, EventArgs e)
         {
             // Mo form huong dan nhu mot hop thoai.
             // Khi HuongDanForm dong, nguoi choi tro lai frmMain hien tai.
