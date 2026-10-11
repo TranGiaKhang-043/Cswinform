@@ -55,7 +55,7 @@
             btnStart.BackColor = SystemColors.Highlight;
             btnStart.Font = new Font("Arial", 15F, FontStyle.Bold, GraphicsUnit.Point, 163);
             btnStart.ForeColor = Color.Yellow;
-            btnStart.Location = new Point(395, 363);
+            btnStart.Location = new Point(491, 407);
             btnStart.Name = "btnStart";
             btnStart.Size = new Size(223, 56);
             btnStart.TabIndex = 2;
@@ -120,8 +120,8 @@
             AutoValidate = AutoValidate.EnablePreventFocusChange;
             BackColor = Color.FromArgb(10, 20, 65);
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
-            BackgroundImageLayout = ImageLayout.Zoom;
-            ClientSize = new Size(987, 550);
+            BackgroundImageLayout = ImageLayout.Stretch;
+            ClientSize = new Size(1179, 638);
             Controls.Add(btnExit);
             Controls.Add(btnSound);
             Controls.Add(btnAchievement);

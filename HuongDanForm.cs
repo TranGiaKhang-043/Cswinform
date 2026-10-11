@@ -19,5 +19,20 @@ namespace AILATRIEUPHU__MINH_QUAN_
         {
 
         }
+
+        private void btnExit_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void HuongDanForm_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void btnBack_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
