@@ -22,8 +22,8 @@ namespace AiLaTrieuPhu
         public string FilePath { get; }
 
         public ScoreStorage() : this(Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-            "AiLaTrieuPhu", "scores.json")) { }
+            AppContext.BaseDirectory,
+            "scores.json")) { }
 
         public ScoreStorage(string filePath)
         {
