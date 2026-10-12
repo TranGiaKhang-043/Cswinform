@@ -44,7 +44,7 @@
             lblTitle.Font = new Font("Segoe UI", 20F, FontStyle.Bold);
             lblTitle.Location = new Point(203, 25);
             lblTitle.Name = "lblTitle";
-            lblTitle.Size = new Size(591, 37);
+            lblTitle.Size = new Size(877, 54);
             lblTitle.TabIndex = 0;
             lblTitle.Text = "💰 BẠN CÓ MUỐN GIÀU SAU MỘT ĐÊM ? 💰";
             lblTitle.Click += lblTitle_Click;
@@ -55,7 +55,7 @@
             btnStart.BackColor = SystemColors.Highlight;
             btnStart.Font = new Font("Arial", 15F, FontStyle.Bold, GraphicsUnit.Point, 163);
             btnStart.ForeColor = Color.Yellow;
-            btnStart.Location = new Point(491, 407);
+            btnStart.Location = new Point(492, 411);
             btnStart.Name = "btnStart";
             btnStart.Size = new Size(223, 56);
             btnStart.TabIndex = 2;
@@ -115,13 +115,13 @@
             // 
             // frmMain
             // 
-            AutoScaleDimensions = new SizeF(6F, 13F);
+            AutoScaleDimensions = new SizeF(10F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             AutoValidate = AutoValidate.EnablePreventFocusChange;
             BackColor = Color.FromArgb(10, 20, 65);
             BackgroundImage = (Image)resources.GetObject("$this.BackgroundImage");
             BackgroundImageLayout = ImageLayout.Stretch;
-            ClientSize = new Size(1179, 638);
+            ClientSize = new Size(1180, 646);
             Controls.Add(btnExit);
             Controls.Add(btnSound);
             Controls.Add(btnAchievement);
