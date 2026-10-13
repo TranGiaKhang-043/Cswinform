@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Diagnostics;
+using System.Reflection;
 using System.Globalization;
 using System.Windows.Forms;
 using AiLaTrieuPhu;
@@ -43,6 +45,13 @@ namespace AILATRIEUPHU
         private bool _interactionBusy;
         private bool _isResultPopupVisible;
         private ResultPopupAction _resultPopupAction;
+        private bool _skipExitConfirmation;
+
+        // Timer dùng Stopwatch để không bị sai thời gian khi UI vẽ chậm.
+        private readonly System.Windows.Forms.Timer _questionTimer;
+        private readonly Stopwatch _questionClock = new Stopwatch();
+        private int _questionTimeLimitSeconds;
+        private int _remainingSeconds;
 
         private static readonly CultureInfo MoneyCulture =
             CultureInfo.GetCultureInfo("en-US");
@@ -62,7 +71,8 @@ namespace AILATRIEUPHU
         private enum ResultPopupAction
         {
             Continue,
-            Replay
+            Replay,
+            ReturnToMenu
         }
 
         #endregion
@@ -103,7 +113,14 @@ namespace AILATRIEUPHU
                 ReshowDelay = 100
             };
             _topicMenu = new ContextMenuStrip(components);
+            _questionTimer = new System.Windows.Forms.Timer(components)
+            {
+                Interval = 100
+            };
+            _questionTimer.Tick += QuestionTimer_Tick;
 
+            // DoubleBuffered = true trên Form chưa đủ cho Panel vẽ thủ công.
+            EnablePanelBuffering(this);
             SetupGameUI();
             SetupResultPopupUI();
             SetupTopicMenu();
@@ -137,6 +154,7 @@ namespace AILATRIEUPHU
             lblResultAction.Click -= lblResultAction_Click;
             lblResultAction.Click += ResultAction_Click;
             Resize += FormResized;
+            Shown += (sender, e) => ResumeQuestionTimer();
         }
 
         private void ClosePanel_Click(object? sender, EventArgs e)
@@ -147,6 +165,30 @@ namespace AILATRIEUPHU
         private void FormResized(object? sender, EventArgs e)
         {
             CenterResultPopup();
+        }
+
+        // Bật double-buffer cho các Panel của Designer mà không cần sửa Designer.cs.
+        private static void EnablePanelBuffering(Control parent)
+        {
+            PropertyInfo? property = typeof(Control).GetProperty(
+                "DoubleBuffered", BindingFlags.Instance | BindingFlags.NonPublic);
+            if (property == null) return;
+            EnablePanelBufferingRecursive(parent, property);
+        }
+
+        private static void EnablePanelBufferingRecursive(Control parent, PropertyInfo property)
+        {
+            foreach (Control child in parent.Controls)
+            {
+                if (child is Panel)
+                {
+                    property.SetValue(child, true);
+                }
+                if (child.HasChildren)
+                {
+                    EnablePanelBufferingRecursive(child, property);
+                }
+            }
         }
 
         #endregion
@@ -183,6 +225,8 @@ namespace AILATRIEUPHU
             }
 
             _topicMenu.Opening += (sender, e) => e.Cancel = !CanChangeTopic();
+            _topicMenu.Opened += (sender, e) => PauseQuestionTimer();
+            _topicMenu.Closed += (sender, e) => ResumeQuestionTimer();
             btnTopic.ContextMenuStrip = _topicMenu;
         }
 
@@ -222,6 +266,7 @@ namespace AILATRIEUPHU
 
         private void StartNewGameFromUI()
         {
+            PauseQuestionTimer();
             // Dùng lại GameRules để giữ danh sách mã của ván trước.
             _game.StartNewGame();
             _pendingScore = null;
@@ -269,7 +314,111 @@ namespace AILATRIEUPHU
 
             RefreshMoneyDisplay();
             RefreshGameControls();
+            StartQuestionTimer(question);
         }
+
+        #region Đồng hồ cho từng câu hỏi
+
+        private static int GetQuestionTimeLimit(QuestionDifficulty difficulty)
+        {
+            return difficulty switch
+            {
+                QuestionDifficulty.Easy => 15,
+                QuestionDifficulty.Medium => 30,
+                QuestionDifficulty.Hard => 45,
+                _ => 30
+            };
+        }
+
+        private void StartQuestionTimer(Question question)
+        {
+            PauseQuestionTimer();
+            _questionTimeLimitSeconds = GetQuestionTimeLimit(question.Difficulty);
+            _remainingSeconds = _questionTimeLimitSeconds;
+            _questionClock.Reset();
+            SetPanelText(btnTimer, $"{_remainingSeconds}s");
+            _toolTip.SetToolTip(btnTimer,
+                $"Câu {GetDifficultyText(question.Difficulty)}: " +
+                $"{_questionTimeLimitSeconds} giây để trả lời.");
+            // Không trừ thời gian trước khi cửa sổ thật sự xuất hiện.
+            if (_game.CanAnswer && Visible)
+            {
+                _questionClock.Start();
+                _questionTimer.Start();
+            }
+        }
+
+        private void PauseQuestionTimer()
+        {
+            _questionTimer.Stop();
+            _questionClock.Stop();
+        }
+
+        private void ResumeQuestionTimer()
+        {
+            if (_isResultPopupVisible || _interactionBusy || !_game.CanAnswer)
+                return;
+            if (_questionClock.Elapsed.TotalSeconds >= _questionTimeLimitSeconds)
+            {
+                HandleQuestionTimeout();
+                return;
+            }
+            _questionClock.Start();
+            _questionTimer.Start();
+        }
+
+        private void QuestionTimer_Tick(object? sender, EventArgs e)
+        {
+            if (_isResultPopupVisible || !_game.CanAnswer)
+            {
+                PauseQuestionTimer();
+                return;
+            }
+            if (_interactionBusy) return;
+
+            int secondsLeft = Math.Max(0,
+                (int)Math.Ceiling(_questionTimeLimitSeconds - _questionClock.Elapsed.TotalSeconds));
+            if (secondsLeft != _remainingSeconds)
+            {
+                _remainingSeconds = secondsLeft;
+                SetPanelText(btnTimer, $"{secondsLeft}s");
+            }
+            if (secondsLeft == 0)
+                HandleQuestionTimeout();
+        }
+
+        private void HandleQuestionTimeout()
+        {
+            if (_interactionBusy || _isResultPopupVisible || !_game.CanAnswer)
+                return;
+
+            PauseQuestionTimer();
+            _interactionBusy = true;
+            try
+            {
+                Question question = _game.CurrentQuestion;
+                // GameRules hiện chưa có TimeoutQuestion(). Nộp một đáp án sai
+                // để GameRules tự tính trạng thái thua và tiền nhận như bình thường.
+                int wrongAnswer = (question.CorrectAnswerIndex + 1) % _answerPanels.Length;
+                AnswerResult result = _game.SubmitAnswer(question.Id, wrongAnswer);
+                if (result == AnswerResult.Invalid) return;
+
+                SetAnswerState(question.CorrectAnswerIndex, AnswerUiState.Correct);
+                RefreshMoneyDisplay();
+                ShowResultPopup("HẾT THỜI GIAN!",
+                    $"Bạn không trả lời trong {_questionTimeLimitSeconds} giây.\n\n" +
+                    $"Đáp án đúng: {GetAnswerLetter(question.CorrectAnswerIndex)}\n" +
+                    $"Tiền nhận được: {FormatMoney(_game.FinalMoney ?? 0)}",
+                    FailureColor, "CHƠI LẠI", ResultPopupAction.Replay);
+            }
+            finally
+            {
+                _interactionBusy = false;
+                RefreshGameControls();
+            }
+        }
+
+        #endregion
 
         // Một chỗ duy nhất quyết định trạng thái bật/tắt của các nút.
         private void RefreshGameControls()
@@ -324,6 +473,15 @@ namespace AILATRIEUPHU
                 return;
             }
 
+            // Tránh việc nhấp đúng sát mốc hết giờ nhưng Timer chưa kịp Tick.
+            if (_questionClock.IsRunning &&
+                _questionClock.Elapsed.TotalSeconds >= _questionTimeLimitSeconds)
+            {
+                HandleQuestionTimeout();
+                return;
+            }
+
+            PauseQuestionTimer();
             _interactionBusy = true;
             RefreshGameControls();
 
@@ -371,6 +529,7 @@ namespace AILATRIEUPHU
             finally
             {
                 _interactionBusy = false;
+                ResumeQuestionTimer(); // chỉ tiếp tục nếu GameRules không chấp nhận đáp án
                 RefreshGameControls();
             }
         }
@@ -382,6 +541,7 @@ namespace AILATRIEUPHU
                 return;
             }
 
+            PauseQuestionTimer();
             _interactionBusy = true;
             RefreshGameControls();
 
@@ -397,12 +557,13 @@ namespace AILATRIEUPHU
                     ShowResultPopup("DỪNG CUỘC CHƠI",
                         "Bạn đã quyết định dừng cuộc chơi.\n\n" +
                         $"Tiền nhận được: {FormatMoney(_game.FinalMoney ?? 0)}",
-                        GoldColor, "CHƠI LẠI", ResultPopupAction.Replay);
+                        GoldColor, "VỀ MÀN HÌNH CHÍNH", ResultPopupAction.ReturnToMenu);
                 }
             }
             finally
             {
                 _interactionBusy = false;
+                ResumeQuestionTimer(); // Người chơi chọn No thì tiếp tục đếm giờ
                 RefreshGameControls();
             }
         }
@@ -527,6 +688,7 @@ namespace AILATRIEUPHU
         // Gắn hộp thông báo với Form chủ và khóa thao tác trong lúc hộp đang mở.
         private void ShowLifelineMessage(string title, string message)
         {
+            PauseQuestionTimer();
             _interactionBusy = true;
             RefreshGameControls();
             try
@@ -537,6 +699,7 @@ namespace AILATRIEUPHU
             finally
             {
                 _interactionBusy = false;
+                ResumeQuestionTimer();
                 RefreshGameControls();
             }
         }
@@ -548,7 +711,8 @@ namespace AILATRIEUPHU
         private void ShowResultPopup(string title, string message, Color accentColor,
             string actionText, ResultPopupAction action)
         {
-            if (action == ResultPopupAction.Replay) SaveCompletedGame();
+            PauseQuestionTimer();
+            if (action != ResultPopupAction.Continue) SaveCompletedGame();
             _resultAccentColor = accentColor;
             _resultPopupAction = action;
             _isResultPopupVisible = true;
@@ -605,15 +769,25 @@ namespace AILATRIEUPHU
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            if (_game.State == GameState.Playing)
+            PauseQuestionTimer();
+            if (!_skipExitConfirmation)
             {
-                if (MessageBox.Show(this, "Ván chưa kết thúc. Thoát sẽ không lưu thành tích.\n" +
-                    "Muốn nhận tiền và lưu kết quả, chọn Không rồi dùng nút Dừng cuộc chơi.\n\nThoát ván này?",
-                    "Về màn hình chính", MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question) != DialogResult.Yes) e.Cancel = true;
+                if (_game.State == GameState.Playing)
+                {
+                    if (MessageBox.Show(this,
+                        "Ván chưa kết thúc. Thoát sẽ không lưu thành tích.\n" +
+                        "Muốn nhận tiền và lưu kết quả, chọn Không rồi dùng nút Dừng cuộc chơi.\n\nThoát ván này?",
+                        "Về màn hình chính", MessageBoxButtons.YesNo,
+                        MessageBoxIcon.Question) != DialogResult.Yes) e.Cancel = true;
+                }
+                else if (!CanLeaveResult()) e.Cancel = true;
             }
-            else if (!CanLeaveResult()) e.Cancel = true;
             base.OnFormClosing(e);
+            if (e.Cancel)
+            {
+                _skipExitConfirmation = false;
+                ResumeQuestionTimer();
+            }
         }
 
         private void HideResultPopup()
@@ -641,6 +815,20 @@ namespace AILATRIEUPHU
                         LoadQuestionToUI();
                     }
                 }
+                else if (_resultPopupAction == ResultPopupAction.ReturnToMenu)
+                {
+                    if (CanLeaveResult())
+                    {
+                        _skipExitConfirmation = true;
+                        // Nếu màn hình chính được truyền làm Owner, hiện lại ngay.
+                        if (Owner != null && !Owner.IsDisposed)
+                        {
+                            Owner.Show();
+                            Owner.BringToFront();
+                        }
+                        Close();
+                    }
+                }
                 else
                 {
                     if (CanLeaveResult()) StartNewGameFromUI();
@@ -649,15 +837,20 @@ namespace AILATRIEUPHU
             finally
             {
                 _interactionBusy = false;
-                RefreshGameControls();
+                if (!IsDisposed && !Disposing)
+                    RefreshGameControls();
             }
         }
 
         private void CenterResultPopup()
         {
+            if (pnlResult == null || pnlResult.Parent == null) return;
+            Size available = pnlResult.Parent.ClientSize;
             pnlResult.Location = new Point(
-                Math.Max(0, (ClientSize.Width - pnlResult.Width) / 2),
-                Math.Max(0, (ClientSize.Height - pnlResult.Height) / 2));
+                Math.Max(0, (available.Width - pnlResult.Width) / 2),
+                Math.Max(0, (available.Height - pnlResult.Height) / 2));
+            pnlResultAction.Left = Math.Max(0,
+                (pnlResult.Width - pnlResultAction.Width) / 2);
         }
 
         #endregion
@@ -687,6 +880,9 @@ namespace AILATRIEUPHU
 
         private void SetPanelText(Panel panel, string text)
         {
+            // Tránh yêu cầu vẽ lại khi nội dung thực tế không thay đổi.
+            if (string.Equals(panel.Tag as string, text, StringComparison.Ordinal))
+                return;
             panel.Tag = text;
             panel.AccessibleName = text;
             _toolTip.SetToolTip(panel, text);
@@ -695,19 +891,22 @@ namespace AILATRIEUPHU
 
         private void SetPanelEnabled(Panel panel, bool enabled)
         {
-            panel.Enabled = enabled;
-            if (!enabled)
+            bool wasHovered = !enabled && _hoveredPanels.Remove(panel);
+            if (panel.Enabled == enabled)
             {
-                _hoveredPanels.Remove(panel);
+                if (wasHovered) panel.Invalidate();
+                return;
             }
+            panel.Enabled = enabled;
             panel.Invalidate();
         }
 
         private void SetAnswerState(int index, AnswerUiState state)
         {
             Panel panel = _answerPanels[index];
+            bool wasHovered = _hoveredPanels.Remove(panel);
+            if (_answerStates[panel] == state && !wasHovered) return;
             _answerStates[panel] = state;
-            _hoveredPanels.Remove(panel);
             panel.Invalidate();
         }
 
@@ -719,9 +918,8 @@ namespace AILATRIEUPHU
         {
             StyleTopPanel(btnQuestionNumber, "CÂU 1/10");
 
-            // SPEC hiện tại chưa có luật hết giờ. Không hiển thị số 30 giả.
-            StyleTopPanel(btnTimer, "—");
-            _toolTip.SetToolTip(btnTimer, "Ván hiện tại không giới hạn thời gian.");
+            // Số giây sẽ do StartQuestionTimer() cập nhật theo độ khó.
+            StyleTopPanel(btnTimer, "15s");
 
             // Tận dụng khoảng trống có sẵn để tên chủ đề dễ đọc hơn.
             int topicWidth = btnFiftyFifty.Left - btnTopic.Left - 12;
@@ -801,7 +999,10 @@ namespace AILATRIEUPHU
                     goldBorder ? Color.FromArgb(190, 150, 55) : Color.FromArgb(70, 100, 170),
                     1.2f);
 
+                bool timerAlmostOver = ReferenceEquals(panel, btnTimer) &&
+                    _remainingSeconds <= 5 && _questionClock.IsRunning;
                 Color color = !panel.Enabled ? Color.FromArgb(145, 150, 165) :
+                    timerAlmostOver ? FailureColor :
                     goldBorder ? Color.FromArgb(245, 230, 190) : Color.White;
                 DrawFittedText(e.Graphics, panel.Tag?.ToString() ?? string.Empty,
                     Rectangle.Inflate(rect, -3, -1), color, 8.5f, 7f, false, true);
@@ -1075,3 +1276,4 @@ namespace AILATRIEUPHU
         #endregion
     }
 }
+
