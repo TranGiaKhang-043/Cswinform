@@ -38,7 +38,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             panel2 = new Panel();
             label3 = new Label();
             label4 = new Label();
-            this.btnAuthor = new Button();
+            this.buttonAuthor = new Button();
             buttonBack = new Button();
             pnlHowToPlay.SuspendLayout();
             panel1.SuspendLayout();
@@ -170,22 +170,22 @@ namespace AILATRIEUPHU__MINH_QUAN_
             label4.Text = "03 · TIỀN THƯỞNG";
             label4.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // btnAuthor
+            // buttonAuthor
             // 
-            this.btnAuthor.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            this.btnAuthor.BackColor = Color.FromArgb(0, 119, 209);
-            this.btnAuthor.Cursor = Cursors.Hand;
-            this.btnAuthor.FlatAppearance.BorderSize = 0;
-            this.btnAuthor.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            this.btnAuthor.ForeColor = Color.White;
-            this.btnAuthor.Location = new Point(647, 790);
-            this.btnAuthor.Margin = new Padding(4, 5, 4, 5);
-            this.btnAuthor.Name = "btnAuthor";
-            this.btnAuthor.Size = new Size(590, 93);
-            this.btnAuthor.TabIndex = 16;
-            this.btnAuthor.Text = "TÁC GIẢ";
-            this.btnAuthor.UseVisualStyleBackColor = false;
-            this.btnAuthor.Click += this.btnBack_Click;
+            this.buttonAuthor.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            this.buttonAuthor.BackColor = Color.FromArgb(0, 119, 209);
+            this.buttonAuthor.Cursor = Cursors.Hand;
+            this.buttonAuthor.FlatAppearance.BorderSize = 0;
+            this.buttonAuthor.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            this.buttonAuthor.ForeColor = Color.White;
+            this.buttonAuthor.Location = new Point(647, 790);
+            this.buttonAuthor.Margin = new Padding(4, 5, 4, 5);
+            this.buttonAuthor.Name = "buttonAuthor";
+            this.buttonAuthor.Size = new Size(590, 93);
+            this.buttonAuthor.TabIndex = 16;
+            this.buttonAuthor.Text = "TÁC GIẢ";
+            this.buttonAuthor.UseVisualStyleBackColor = false;
+            this.buttonAuthor.Click += buttonAuthor_Click;
             // 
             // buttonBack
             // 
@@ -202,7 +202,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             buttonBack.TabIndex = 17;
             buttonBack.Text = "QUAY LẠI";
             buttonBack.UseVisualStyleBackColor = false;
-            buttonBack.Click += button1_Click;
+            buttonBack.Click += buttonBack_Click;
             // 
             // HuongDanForm
             // 
@@ -211,7 +211,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
             BackColor = Color.FromArgb(33, 11, 53);
             ClientSize = new Size(1254, 907);
             Controls.Add(buttonBack);
-            Controls.Add(this.btnAuthor);
+            Controls.Add(this.buttonAuthor);
             Controls.Add(panel2);
             Controls.Add(panel1);
             Controls.Add(pnlHowToPlay);
@@ -238,7 +238,7 @@ namespace AILATRIEUPHU__MINH_QUAN_
         private Panel panel2;
         private Label label3;
         private Label label4;
-        private Button btnBack;
+        private Button buttonAuthor;
         private Button buttonBack;
     }
 }
