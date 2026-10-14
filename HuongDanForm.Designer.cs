@@ -38,7 +38,8 @@ namespace AILATRIEUPHU__MINH_QUAN_
             panel2 = new Panel();
             label3 = new Label();
             label4 = new Label();
-            btnBack = new Button();
+            this.btnAuthor = new Button();
+            buttonBack = new Button();
             pnlHowToPlay.SuspendLayout();
             panel1.SuspendLayout();
             panel2.SuspendLayout();
@@ -169,22 +170,39 @@ namespace AILATRIEUPHU__MINH_QUAN_
             label4.Text = "03 · TIỀN THƯỞNG";
             label4.TextAlign = ContentAlignment.MiddleLeft;
             // 
-            // btnBack
+            // btnAuthor
             // 
-            btnBack.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            btnBack.BackColor = Color.FromArgb(0, 119, 209);
-            btnBack.Cursor = Cursors.Hand;
-            btnBack.FlatAppearance.BorderSize = 0;
-            btnBack.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnBack.ForeColor = Color.White;
-            btnBack.Location = new Point(17, 790);
-            btnBack.Margin = new Padding(4, 5, 4, 5);
-            btnBack.Name = "btnBack";
-            btnBack.Size = new Size(1220, 93);
-            btnBack.TabIndex = 16;
-            btnBack.Text = "QUAY LẠI";
-            btnBack.UseVisualStyleBackColor = false;
-            btnBack.Click += btnBack_Click;
+            this.btnAuthor.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            this.btnAuthor.BackColor = Color.FromArgb(0, 119, 209);
+            this.btnAuthor.Cursor = Cursors.Hand;
+            this.btnAuthor.FlatAppearance.BorderSize = 0;
+            this.btnAuthor.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            this.btnAuthor.ForeColor = Color.White;
+            this.btnAuthor.Location = new Point(647, 790);
+            this.btnAuthor.Margin = new Padding(4, 5, 4, 5);
+            this.btnAuthor.Name = "btnAuthor";
+            this.btnAuthor.Size = new Size(590, 93);
+            this.btnAuthor.TabIndex = 16;
+            this.btnAuthor.Text = "TÁC GIẢ";
+            this.btnAuthor.UseVisualStyleBackColor = false;
+            this.btnAuthor.Click += this.btnBack_Click;
+            // 
+            // buttonBack
+            // 
+            buttonBack.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            buttonBack.BackColor = Color.FromArgb(0, 119, 209);
+            buttonBack.Cursor = Cursors.Hand;
+            buttonBack.FlatAppearance.BorderSize = 0;
+            buttonBack.Font = new Font("Segoe UI", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            buttonBack.ForeColor = Color.White;
+            buttonBack.Location = new Point(17, 790);
+            buttonBack.Margin = new Padding(4, 5, 4, 5);
+            buttonBack.Name = "buttonBack";
+            buttonBack.Size = new Size(622, 93);
+            buttonBack.TabIndex = 17;
+            buttonBack.Text = "QUAY LẠI";
+            buttonBack.UseVisualStyleBackColor = false;
+            buttonBack.Click += button1_Click;
             // 
             // HuongDanForm
             // 
@@ -192,7 +210,8 @@ namespace AILATRIEUPHU__MINH_QUAN_
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.FromArgb(33, 11, 53);
             ClientSize = new Size(1254, 907);
-            Controls.Add(btnBack);
+            Controls.Add(buttonBack);
+            Controls.Add(this.btnAuthor);
             Controls.Add(panel2);
             Controls.Add(panel1);
             Controls.Add(pnlHowToPlay);
@@ -220,5 +239,6 @@ namespace AILATRIEUPHU__MINH_QUAN_
         private Label label3;
         private Label label4;
         private Button btnBack;
+        private Button buttonBack;
     }
 }

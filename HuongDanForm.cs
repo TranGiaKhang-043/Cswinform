@@ -64,5 +64,10 @@ namespace AILATRIEUPHU__MINH_QUAN_
         {
             // Khong thay doi giao dien tai day.
         }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
